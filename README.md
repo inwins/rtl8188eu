@@ -34,3 +34,4 @@ Frequently asked Questions
 ### The network manager says: "Device is not ready"!
 Make sure you copied the firmware (rtl8188eufw.bin) to /lib/firmware/rtlwifi/
 
+我有一个8188eu的无线网卡，可以用来调试熟悉linux下的驱动程序。我对linux驱动了解较少，只是看代码并添加一些中文注释，希望可以学到一些有用的的东西。你也有兴趣可以一起交流。
