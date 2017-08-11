@@ -197,7 +197,7 @@ struct dvobj_priv {
 	u8 *usb_vendor_req_buf;
 
 	struct usb_interface *pusbintf;
-	struct usb_device *pusbdev;
+	struct usb_device *pusbdev;  /** usb设备的地址*/
 
 	ATOMIC_T continual_urb_error;
 	u8 signal_strength;

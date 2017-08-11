@@ -696,6 +696,13 @@ enum rt_rf_power_state RfOnOffDetect(struct adapter *adapt)
 	return rfpowerstate;
 }	/*  HalDetectPwrDownMode */
 
+/**
+* @brief 网卡硬件初始化
+*
+* @param Adapter 网络适配器
+*
+* @return 成功返回1,失败返回0
+*/
 static u32 rtl8188eu_hal_init(struct adapter *Adapter)
 {
 	u8 value8 = 0;
@@ -765,7 +772,7 @@ static u32 rtl8188eu_hal_init(struct adapter *Adapter)
 		_InitRxSetting(Adapter);
 		Adapter->bFWReady = false;
 		haldata->fw_ractrl = false;
-	} else {
+	} else {  /** 这里进行加载固件*/
 		status = rtl8188e_FirmwareDownload(Adapter);
 
 		if (status != _SUCCESS) {
@@ -2287,6 +2294,11 @@ static u8 rtl8188eu_ps_func(struct adapter *Adapter, enum hal_intf_ps_func efunc
 	return bResult;
 }
 
+/**
+* @brief 设置适配器的硬件函数
+*
+* @param adapt 网卡描述对象
+*/
 void rtl8188eu_set_hal_ops(struct adapter *adapt)
 {
 	struct hal_ops	*halfunc = &adapt->HalFunc;
@@ -2297,7 +2309,7 @@ void rtl8188eu_set_hal_ops(struct adapter *adapt)
 	adapt->hal_data_sz = sizeof(struct hal_data_8188e);
 
 	halfunc->hal_power_on = rtl8188eu_InitPowerOn;
-	halfunc->hal_init = &rtl8188eu_hal_init;
+	halfunc->hal_init = &rtl8188eu_hal_init;  /** 硬件初始化需要加载固件*/
 	halfunc->hal_deinit = &rtl8188eu_hal_deinit;
 
 	halfunc->inirp_init = &rtl8188eu_inirp_init;

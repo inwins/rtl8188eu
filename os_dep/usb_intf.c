@@ -45,6 +45,9 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf);
 #define USB_VENDER_ID_REALTEK		0x0bda
 
 /* DID_USB_v916_20130116 */
+/**
+* @brief 驱动支持的各种硬件id
+*/
 static struct usb_device_id rtw_usb_id_tbl[] = {
 	/*=== Realtek demoboard ===*/
 	{USB_DEVICE(USB_VENDER_ID_REALTEK, 0x8179)}, /* 8188EUS */
@@ -73,6 +76,10 @@ struct rtw_usb_drv {
 	struct mutex hw_init_mutex;
 };
 
+/**
+* @brief 这里是驱动的各种操作入口点,这个应该是只支持usb，原来的还有pci和sdio两种
+* 不知道是不是被移除了
+*/
 static struct rtw_usb_drv rtl8188e_usb_drv = {
 	.usbdrv.name = (char *)"r8188eu",
 	.usbdrv.probe = rtw_drv_init,
@@ -151,6 +158,13 @@ static u8 rtw_deinit_intf_priv(struct dvobj_priv *dvobj)
 	return rst;
 }
 
+/**
+* @brief 初始化usb设备对象
+*
+* @param usb_intf usb接口
+*
+* @return 成功返回0
+*/
 static struct dvobj_priv *usb_dvobj_init(struct usb_interface *usb_intf)
 {
 	int	i;
@@ -168,9 +182,9 @@ static struct dvobj_priv *usb_dvobj_init(struct usb_interface *usb_intf)
 		goto exit;
 
 	pdvobjpriv->pusbintf = usb_intf;
-	pusbd = interface_to_usbdev(usb_intf);
+	pusbd = interface_to_usbdev(usb_intf);  /** 根据usb_interface指针intf获取usb_device的地址*/
 	pdvobjpriv->pusbdev = pusbd;
-	usb_set_intfdata(usb_intf, pdvobjpriv);
+	usb_set_intfdata(usb_intf, pdvobjpriv);  /** 向内核注册一个data，这个data的结构可以是任意的*/
 
 	pdvobjpriv->RtNumInPipes = 0;
 	pdvobjpriv->RtNumOutPipes = 0;
@@ -220,7 +234,7 @@ static struct dvobj_priv *usb_dvobj_init(struct usb_interface *usb_intf)
 	}
 
 	/* 3 misc */
-	sema_init(&(pdvobjpriv->usb_suspend_sema), 0);
+	sema_init(&(pdvobjpriv->usb_suspend_sema), 0);  /** 该函数初始化信号量,并设置信号量sem的值为0*/
 	rtw_reset_continual_urb_error(pdvobjpriv);
 
 	usb_get_dev(pusbd);
@@ -266,6 +280,12 @@ static void usb_dvobj_deinit(struct usb_interface *usb_intf)
 
 }
 
+/**
+* @brief 根据硬件id初始化网卡的设备类型
+*
+* @param padapter 适配器
+* @param pdid 硬件id
+*/
 static void chip_by_usb_id(struct adapter *padapter,
 			   const struct usb_device_id *pdid)
 {
@@ -607,6 +627,15 @@ exit:
  *        We accept the new device by returning 0.
  */
 
+/**
+* @brief 初始化生成一个网卡对象
+*
+* @param dvobj usb设备对象
+* @param pusb_intf usb设备接口
+* @param pdid 设备的硬件id
+*
+* @return 成功返回0
+*/
 static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 	struct usb_interface *pusb_intf, const struct usb_device_id *pdid)
 {
@@ -617,8 +646,8 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 	padapter = (struct adapter *)rtw_zvmalloc(sizeof(*padapter));
 	if (padapter == NULL)
 		goto exit;
-	padapter->dvobj = dvobj;
-	dvobj->if1 = padapter;
+	padapter->dvobj = dvobj;  /** 设置网卡的设备对象*/
+	dvobj->if1 = padapter;  /** 设置设备对象的网卡对象*/
 
 	padapter->bDriverStopped = true;
 
@@ -631,20 +660,20 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 	if (rtw_handle_dualmac(padapter, 1) != _SUCCESS)
 		goto free_adapter;
 
-	pnetdev = rtw_init_netdev(padapter);
+	pnetdev = rtw_init_netdev(padapter);  /** 设置网卡的操作函数*/
 	if (pnetdev == NULL)
 		goto handle_dualmac;
 	SET_NETDEV_DEV(pnetdev, dvobj_to_dev(dvobj));
 	padapter = rtw_netdev_priv(pnetdev);
 
 	/* step 2. hook HalFunc, allocate HalData */
-	hal_set_hal_ops(padapter);
+	hal_set_hal_ops(padapter);  /** rtl8188eu_set_hal_ops 设置网卡的硬件函数，只支持usb*/
 
 	padapter->intf_start = &usb_intf_start;
 	padapter->intf_stop = &usb_intf_stop;
 
 	/* step init_io_priv */
-	rtw_init_io_priv(padapter, usb_set_intf_ops);
+	rtw_init_io_priv(padapter, usb_set_intf_ops);  /** 初始化usb操作*/
 
 	/* step read_chip_version */
 	rtw_hal_read_chip_version(padapter);
@@ -771,7 +800,7 @@ static int rtw_drv_init(struct usb_interface *pusb_intf, const struct usb_device
 		goto exit;
 	}
 
-	if1 = rtw_usb_if1_init(dvobj, pusb_intf, pdid);
+	if1 = rtw_usb_if1_init(dvobj, pusb_intf, pdid);  /** 初始化网卡和usb接口*/
 	if (if1 == NULL) {
 		DBG_88E("rtw_init_primarystruct adapter Failed!\n");
 		goto free_dvobj;
@@ -825,6 +854,11 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf)
 	return;
 }
 
+/**
+* @brief 驱动的函数入口点，加载模块时初始化,没有插入应该会初始化失败
+*
+* @return 成功返回0
+*/
 static int __init rtw_drv_entry(void)
 {
 	RT_TRACE(_module_hci_intfs_c_, _drv_err_, ("+rtw_drv_entry\n"));

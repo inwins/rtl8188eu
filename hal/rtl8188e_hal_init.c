@@ -618,6 +618,13 @@ Exit:
 	return rtStatus;
 }
 
+/**
+* @brief 加载网卡固件
+*
+* @param padapter 网卡对象
+*
+* @return 失败返回0,成功返回1
+*/
 s32 rtl8188e_FirmwareDownload(struct adapter *padapter)
 {
 	s32	rtStatus = _SUCCESS;
