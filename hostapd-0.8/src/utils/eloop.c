@@ -21,10 +21,10 @@
 
 
 struct eloop_sock {
-	int sock;
-	void *eloop_data;
-	void *user_data;
-	eloop_sock_handler handler;
+	int sock;  /** socket描述符*/
+	void *eloop_data;  /** 回调函数第一个参数*/
+	void *user_data;  /** 毁掉函数第二个参数*/
+	eloop_sock_handler handler;  /** 回调函数指针*/
 	WPA_TRACE_REF(eloop);
 	WPA_TRACE_REF(user);
 	WPA_TRACE_INFO
@@ -49,17 +49,17 @@ struct eloop_signal {
 };
 
 struct eloop_sock_table {
-	int count;
-	struct eloop_sock *table;
+	int count;  /** 注册的socket个数*/
+	struct eloop_sock *table;  /** 注册信息*/
 	int changed;
 };
 
 struct eloop_data {
-	int max_sock;
+	int max_sock;  /** 所有socket中的最大值*/
 
-	struct eloop_sock_table readers;
-	struct eloop_sock_table writers;
-	struct eloop_sock_table exceptions;
+	struct eloop_sock_table readers;  /** 读事件列表*/
+	struct eloop_sock_table writers;  /** 写事件列表*/
+	struct eloop_sock_table exceptions;  /** 意外事件列表*/
 
 	struct dl_list timeout;
 
@@ -152,9 +152,9 @@ static int eloop_sock_table_add_sock(struct eloop_sock_table *table,
 	wpa_trace_record(&tmp[table->count]);
 	table->count++;
 	table->table = tmp;
-	if (sock > eloop.max_sock)
+	if (sock > eloop.max_sock)  /** 更新最大socket，用于select*/
 		eloop.max_sock = sock;
-	table->changed = 1;
+	table->changed = 1;  /** 这个表被修改了*/
 	eloop_trace_sock_add_ref(table);
 
 	return 0;
@@ -216,7 +216,7 @@ static void eloop_sock_table_dispatch(struct eloop_sock_table *table,
 			table->table[i].handler(table->table[i].sock,
 						table->table[i].eloop_data,
 						table->table[i].user_data);
-			if (table->changed)
+			if (table->changed)  /** 表被修改了就会出现不再集合中文件描述符*/
 				break;
 		}
 	}
@@ -274,6 +274,17 @@ static struct eloop_sock_table *eloop_get_sock_table(eloop_event_type type)
 }
 
 
+/**
+* @brief 将变量添加到全局变量的表中
+*
+* @param sock socket描述符
+* @param type 类型 读写异常
+* @param handler 回调函数
+* @param eloop_data 参数1
+* @param user_data 参数2
+*
+* @return 成功返回0,失败返回-1
+*/
 int eloop_register_sock(int sock, eloop_event_type type,
 			eloop_sock_handler handler,
 			void *eloop_data, void *user_data)
@@ -500,6 +511,9 @@ int eloop_register_signal_reconfig(eloop_signal_handler handler,
 }
 
 
+/**
+* @brief 程序最后进入的消息循环
+*/
 void eloop_run(void)
 {
 	fd_set *rfds, *wfds, *efds;
@@ -519,7 +533,7 @@ void eloop_run(void)
 		struct eloop_timeout *timeout;
 		timeout = dl_list_first(&eloop.timeout, struct eloop_timeout,
 					list);
-		if (timeout) {
+		if (timeout) {  /** 减少超时时间误差*/
 			os_get_time(&now);
 			if (os_time_before(&now, &timeout->time))
 				os_time_sub(&timeout->time, &now, &tv);
@@ -542,7 +556,7 @@ void eloop_run(void)
 
 		/* check if some registered timeouts have occurred */
 		timeout = dl_list_first(&eloop.timeout, struct eloop_timeout,
-					list);
+					list);  /** 检查链表是否为空，处理链表*/
 		if (timeout) {
 			os_get_time(&now);
 			if (!os_time_before(&now, &timeout->time)) {
@@ -556,7 +570,7 @@ void eloop_run(void)
 
 		}
 
-		if (res <= 0)
+		if (res <= 0)  /** res=0 没有可操作的文件描述符*/
 			continue;
 
 		eloop_sock_table_dispatch(&eloop.readers, rfds);

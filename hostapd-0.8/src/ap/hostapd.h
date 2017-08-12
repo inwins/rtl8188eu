@@ -52,13 +52,16 @@ struct hostapd_frame_info {
 /**
  * struct hostapd_data - hostapd per-BSS data structure
  */
+/**
+* @brief 描述一个BSS一个基本服务集
+*/
 struct hostapd_data {
 	struct hostapd_iface *iface;
 	struct hostapd_config *iconf;
-	struct hostapd_bss_config *conf;
+	struct hostapd_bss_config *conf;  /** BSS的配置信息*/
 	int interface_added; /* virtual interface added for this BSS */
 
-	u8 own_addr[ETH_ALEN];
+	u8 own_addr[ETH_ALEN];  /** BSS的BSSID*/
 
 	int num_sta; /* number of entries in sta_list */
 	struct sta_info *sta_list; /* STA info list head */
@@ -74,7 +77,7 @@ struct hostapd_data {
 #define AID_WORDS ((2008 + 31) / 32)
 	u32 sta_aid[AID_WORDS];
 
-	const struct wpa_driver_ops *driver;
+	const struct wpa_driver_ops *driver;  /** 驱动接口，用于与内核交互*/
 	void *drv_priv;
 
 	void (*new_assoc_sta_cb)(struct hostapd_data *hapd,
@@ -168,16 +171,19 @@ struct hostapd_data {
 /**
  * struct hostapd_iface - hostapd per-interface data structure
  */
+/**
+* @brief 描述了一个网络接口，例如wlan0
+*/
 struct hostapd_iface {
 	struct hapd_interfaces *interfaces;
 	void *owner;
 	int (*reload_config)(struct hostapd_iface *iface);
 	struct hostapd_config * (*config_read_cb)(const char *config_fname);
 	char *config_fname;
-	struct hostapd_config *conf;
+	struct hostapd_config *conf;  /** 网络配置，从hostapd.conf中加载*/
 
-	size_t num_bss;
-	struct hostapd_data **bss;
+	size_t num_bss;  /** 基本服务集的个数*/
+	struct hostapd_data **bss;  /** BSS列表，描述BSS的配置*/
 
 	int num_ap; /* number of entries in ap_list */
 	struct ap_info *ap_list; /* AP info list head */

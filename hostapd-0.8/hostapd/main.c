@@ -173,6 +173,13 @@ static void hostapd_logger_cb(void *ctx, const u8 *addr, unsigned int module,
  * data. The allocated data buffer will be freed by calling
  * hostapd_cleanup_iface().
  */
+/**
+* @brief 使用配置文件填充配置接口
+*
+* @param config_file 配置文件
+*
+* @return 成功返回接口，失败返回NULL
+*/
 static struct hostapd_iface * hostapd_init(const char *config_file)
 {
 	struct hostapd_iface *hapd_iface = NULL;
@@ -193,18 +200,18 @@ static struct hostapd_iface * hostapd_init(const char *config_file)
 	hapd_iface->ctrl_iface_deinit = hostapd_ctrl_iface_deinit;
 	hapd_iface->for_each_interface = hostapd_for_each_interface;
 
-	conf = hostapd_config_read(hapd_iface->config_fname);
+	conf = hostapd_config_read(hapd_iface->config_fname);  /** 加载配置文件*/
 	if (conf == NULL)
 		goto fail;
 	hapd_iface->conf = conf;
 
-	hapd_iface->num_bss = conf->num_bss;
+	hapd_iface->num_bss = conf->num_bss;  /** 获取BSS个数*/
 	hapd_iface->bss = os_zalloc(conf->num_bss *
 				    sizeof(struct hostapd_data *));
 	if (hapd_iface->bss == NULL)
 		goto fail;
 
-	for (i = 0; i < conf->num_bss; i++) {
+	for (i = 0; i < conf->num_bss; i++) {  /** 初始化BSS*/
 		hapd = hapd_iface->bss[i] =
 			hostapd_alloc_bss_data(hapd_iface, conf,
 					       &conf->bss[i]);
@@ -246,10 +253,10 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
 		b = NULL;
 
 	os_memset(&params, 0, sizeof(params));
-	params.bssid = b;
-	params.ifname = hapd->conf->iface;
-	params.ssid = (const u8 *) hapd->conf->ssid.ssid;
-	params.ssid_len = hapd->conf->ssid.ssid_len;
+	params.bssid = b;  /** BSSID*/
+	params.ifname = hapd->conf->iface;  /** 网络接名称 例如wlan0*/
+	params.ssid = (const u8 *) hapd->conf->ssid.ssid;  /** ssid*/
+	params.ssid_len = hapd->conf->ssid.ssid_len;  /** ssid长度*/
 	params.test_socket = hapd->conf->test_socket;
 	params.use_pae_group_addr = hapd->conf->use_pae_group_addr;
 
@@ -263,9 +270,9 @@ static int hostapd_driver_init(struct hostapd_iface *iface)
 			params.bridge[i] = bss->conf->bridge;
 	}
 
-	params.own_addr = hapd->own_addr;
+	params.own_addr = hapd->own_addr;  /** 网络接口的MAC地址*/
 
-	hapd->drv_priv = hapd->driver->hapd_init(hapd, &params);
+	hapd->drv_priv = hapd->driver->hapd_init(hapd, &params);  /** 传给驱动*/
 	os_free(params.bridge);
 	if (hapd->drv_priv == NULL) {
 		wpa_printf(MSG_ERROR, "%s driver initialization failed.",
@@ -297,6 +304,15 @@ static void hostapd_interface_deinit_free(struct hostapd_iface *iface)
 }
 
 
+/**
+* @brief 初始化网络接口
+*
+* @param interfaces 网络接口
+* @param config_fname 配置文件名
+* @param debug 调试模式
+*
+* @return 成功返回接口，失败返回NULL
+*/
 static struct hostapd_iface *
 hostapd_interface_init(struct hapd_interfaces *interfaces,
 		       const char *config_fname, int debug)
@@ -315,8 +331,8 @@ hostapd_interface_init(struct hapd_interfaces *interfaces,
 			iface->bss[0]->conf->logger_stdout_level--;
 	}
 
-	if (hostapd_driver_init(iface) ||
-	    hostapd_setup_interface(iface)) {
+	if (hostapd_driver_init(iface) ||  /** wpa_driver_privsep_ops 驱动指针*/
+	    hostapd_setup_interface(iface)) {  /** 设置每个网络接口*/
 		hostapd_interface_deinit_free(iface);
 		return NULL;
 	}

@@ -1172,7 +1172,7 @@ struct hostapd_config * hostapd_config_read(const char *fname)
 	}
 
 	/* set default driver based on configuration */
-	conf->driver = wpa_drivers[0];
+	conf->driver = wpa_drivers[0];  /** 驱动在这里*/
 	if (conf->driver == NULL) {
 		wpa_printf(MSG_ERROR, "No driver wrappers registered!");
 		hostapd_config_free(conf);

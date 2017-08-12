@@ -706,11 +706,11 @@ int hostapd_select_hw_mode(struct hostapd_iface *iface)
 const char * hostapd_hw_mode_txt(int mode)
 {
 	switch (mode) {
-	case HOSTAPD_MODE_IEEE80211A:
+	case HOSTAPD_MODE_IEEE80211A:  /** 5GHZ,54Mb/s标准*/
 		return "IEEE 802.11a";
-	case HOSTAPD_MODE_IEEE80211B:
+	case HOSTAPD_MODE_IEEE80211B:  /** 2.4GHZ,11Mb/s最广泛标准*/
 		return "IEEE 802.11b";
-	case HOSTAPD_MODE_IEEE80211G:
+	case HOSTAPD_MODE_IEEE80211G:  /** 2.4GHZ，54Mb/s b标准发展*/
 		return "IEEE 802.11g";
 	default:
 		return "UNKNOWN";

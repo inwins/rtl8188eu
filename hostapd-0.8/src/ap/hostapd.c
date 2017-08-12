@@ -487,13 +487,13 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 	char force_ifname[IFNAMSIZ];
 	u8 if_addr[ETH_ALEN];
 
-	if (!first) {
+	if (!first) {  /** 不是第一个BSS*/
 		if (hostapd_mac_comp_empty(hapd->conf->bssid) == 0) {
 			/* Allocate the next available BSSID. */
 			do {
 				inc_byte_array(hapd->own_addr, ETH_ALEN);
 			} while (mac_in_conf(hapd->iconf, hapd->own_addr));
-		} else {
+		} else {  /** 配置指定MAC*/
 			/* Allocate the configured BSSID. */
 			os_memcpy(hapd->own_addr, hapd->conf->bssid, ETH_ALEN);
 
@@ -508,7 +508,7 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 		}
 
 		hapd->interface_added = 1;
-		if (hostapd_if_add(hapd->iface->bss[0], WPA_IF_AP_BSS,
+		if (hostapd_if_add(hapd->iface->bss[0], WPA_IF_AP_BSS,  /** 内核中创建interface 如wlan0_0*/
 				   hapd->conf->iface, hapd->own_addr, hapd,
 				   &hapd->drv_priv, force_ifname, if_addr,
 				   hapd->conf->bridge[0] ? hapd->conf->bridge :
@@ -631,7 +631,7 @@ static int hostapd_setup_bss(struct hostapd_data *hapd, int first)
 
 	ieee802_11_set_beacon(hapd);
 
-	if (hapd->driver && hapd->driver->set_operstate)
+	if (hapd->driver && hapd->driver->set_operstate)  /** 激活interface*/
 		hapd->driver->set_operstate(hapd->drv_priv, 1);
 
 	return 0;
@@ -667,7 +667,7 @@ static int setup_interface(struct hostapd_iface *iface)
 	 * Make sure that all BSSes get configured with a pointer to the same
 	 * driver interface.
 	 */
-	for (i = 1; i < iface->num_bss; i++) {
+	for (i = 1; i < iface->num_bss; i++) {  /** 确保每个BSS都使用和物理网卡一样的驱动*/
 		iface->bss[i]->driver = hapd->driver;
 		iface->bss[i]->drv_priv = hapd->drv_priv;
 	}

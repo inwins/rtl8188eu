@@ -163,8 +163,8 @@ void inc_byte_array(u8 *counter, size_t len)
 {
 	int pos = len - 1;
 	while (pos >= 0) {
-		counter[pos]++;
-		if (counter[pos] != 0)
+		counter[pos]++;  /** 最后一字节加1*/
+		if (counter[pos] != 0)  /** 需要进位*/
 			break;
 		pos--;
 	}
